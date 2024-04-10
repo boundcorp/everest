@@ -1,0 +1,35 @@
+
+
+
+[tool.poetry]
+name = "everest"
+version = "0.1.0"
+description = ""
+authors = ["Leeward Bound <leeward@boundcorp.net>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+mountaineer = "^0.4.1.dev1"
+bpython = "^0.24"
+bcrypt = "^4.1.2"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+runserver = "everest.cli:runserver"
+watch = "everest.cli:watch"
+build = "everest.cli:build"
+shell = "everest.cli:shell"
+createdb = "everest.cli:createdb"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+
+
