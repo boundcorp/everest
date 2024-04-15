@@ -30,12 +30,12 @@ def create_session_middleware(secret_key: str, session_cookie_name: str = "evses
     async def session_middleware(request: Request, handler):
         try:
             token = decode_data(secret_key, request.cookies.get(session_cookie_name))
-            if "session_id" not in token:
+            if not token or "session_id" not in token:
                 raise JWTError
         except (JWTError, AttributeError):
             token = {"session_id": str(uuid4())}
 
-        setattr(request, "session_cookie", token or {})
+        request.state.session_cookie = token
 
         response: Response = await handler(request)
 

@@ -6,14 +6,13 @@ export function localStorageState<T>(key: string, defaultValue: T, ssrValue?: T 
     const value = getLocalItem<T>(key)
     if (value) {
       setState(value)
-    } else {
-      setState(defaultValue)
     }
   }, [])
   const set = (value: T) => {
     window?.localStorage.setItem(key, JSON.stringify(value))
     setState(value)
   }
+  console.log("Rendering", key, state)
   return [state, set]
 }
 
@@ -21,6 +20,7 @@ export function getLocalItem<T>(key: string) {
   if (typeof window !== 'undefined') {
     const value = window.localStorage.getItem(key)
     if (value) {
+      console.log("Loading", key, value)
       return JSON.parse(value) as T
     }
   }

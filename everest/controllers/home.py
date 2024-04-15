@@ -5,7 +5,6 @@ from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from everest.core.layout import LayoutContext
-from everest.core.tables import ALL_TABLES
 
 
 class HomeRender(RenderBase):
@@ -19,8 +18,8 @@ class HomeController(ControllerBase):
     async def render(
             self,
             session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
+            layout: LayoutContext = Depends(LayoutContext.get_layout),
     ) -> HomeRender:
-        layout = LayoutContext(tables=ALL_TABLES())
         return HomeRender(
             layout=layout,
             metadata=Metadata(title="Home"),

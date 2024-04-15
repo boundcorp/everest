@@ -35,7 +35,7 @@ controller.app.middleware("http")(create_session_middleware(config.API_SECRET_KE
 
 @controller.app.get("/login")
 async def login(request: Request, response: Response):
-    existing = getattr(request, "session_cookie", {})
-    existing.update({"user_id": "dfa55fe4-017f-4b97-a545-45c6035e28bd"})
-    response.headers["update-session-cookie"] = json.dumps(existing)
+    cookies = getattr(request, "session_cookie", {})
+    cookies.update({"user_id": "dfa55fe4-017f-4b97-a545-45c6035e28bd"})
+    response.headers["update-session-cookie"] = json.dumps(cookies)
     return {"ok": "good"}

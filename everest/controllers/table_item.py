@@ -1,18 +1,19 @@
 from datetime import datetime
 from uuid import UUID
 
-from mountaineer import RenderBase, ControllerBase, APIException
+from mountaineer import RenderBase, ControllerBase, APIException, sideeffect
 from mountaineer.database import DatabaseDependencies
 
 from fastapi import Depends
-from sqlalchemy import select, String, cast
+from sqlalchemy import select, String, cast, Row
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlmodel import SQLModel
 
 from everest import models
 from everest.core.auth.dependencies import AuthDependencies
 from everest.core.layout import LayoutContext
 from everest.core.tables import ALL_TABLES
-from everest.core.types import GenericTableRowItem
+from everest.core.types import AdminTableItem, AdminTableRow
 
 
 class NotFoundException(APIException):
@@ -26,7 +27,7 @@ AnyType = None | bool | str | int | datetime | UUID
 class TableItemRender(RenderBase):
     id: str
     layout: LayoutContext
-    item: GenericTableRowItem
+    item: AdminTableItem
 
 
 class TableItemController(ControllerBase):
@@ -35,21 +36,25 @@ class TableItemController(ControllerBase):
 
     async def render(
             self,
-            table_id: str,
-            item_id: str,
             session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
-            user=Depends(AuthDependencies.require_valid_user(models.User))
+            layout: LayoutContext = Depends(LayoutContext.get_layout),
     ) -> TableItemRender:
-        print("Current user", user)
-        layout = LayoutContext(tables=ALL_TABLES())
-        table = layout.tables.get(table_id)
-        model = getattr(models, table.table_schema.name, None)
-        if not model:
-            raise NotFoundException()
-        item = await session.execute(select(model).where(cast(model.id, String) == item_id))
-
         return TableItemRender(
-            id=table_id,
+            id=layout.item_id,
             layout=layout,
-            item=dict(item.scalars().one())
+            item=layout.item,
         )
+
+    @sideeffect
+    async def partial_update(self, update: AdminTableRow,
+                             session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
+                             layout: LayoutContext = Depends(LayoutContext.get_layout)
+                             ) -> None:
+        if not layout.item:
+            raise NotFoundException
+        existing = await session.execute(select(layout.table.table_model).where(layout.table.table_model.id == layout.item_id))
+        existing = existing.scalars().one()
+        for key, value in update.data.items():
+            setattr(existing, key, value)
+        session.add(existing)
+        await session.commit()

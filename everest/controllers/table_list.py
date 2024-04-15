@@ -9,13 +9,13 @@ from everest import models
 from everest.core.exceptions import NotFoundException
 from everest.core.layout import LayoutContext
 from everest.core.tables import ALL_TABLES
-from everest.core.types import GenericTableRowItem
+from everest.core.types import AdminTableItem
 
 
 class TableListRender(RenderBase):
     id: str
     layout: LayoutContext
-    items: list[GenericTableRowItem] = []
+    items: list[AdminTableItem] = []
 
 
 class TableListController(ControllerBase):
@@ -28,14 +28,10 @@ class TableListController(ControllerBase):
     async def render(
             self,
             table_id: str,
-            session: AsyncSession = Depends(DatabaseDependencies.get_db_session)
+            session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
+            layout: LayoutContext = Depends(LayoutContext.get_layout),
     ) -> TableListRender:
-        layout = LayoutContext(tables=ALL_TABLES())
-        table = layout.tables.get(table_id)
-        model = getattr(models, table.table_schema.name, None)
-        if not model:
-            raise NotFoundException()
-        items = await session.execute(select(model).order_by(*table.table_schema.default_sort_order))
+        items = await session.execute(select(layout.table.table_model).order_by(*layout.table.table_schema.default_sort_order))
         items = [dict(row) for row in items.scalars().all()]
 
         return TableListRender(

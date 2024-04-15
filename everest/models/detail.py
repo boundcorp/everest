@@ -41,11 +41,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     )
 
 
-class User(SQLModel, TimeStampMixin, table=True):
+class UserBase(BaseModel):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     username: str
     email: str | None = None
-    hashed_password: str | None = None
     is_verified: bool = False
     is_staff: bool = False
     is_superuser: bool = False
@@ -55,6 +54,14 @@ class User(SQLModel, TimeStampMixin, table=True):
             nullable=True,
         )
     )
+
+
+class UserPublic(UserBase):
+    id: str
+
+
+class User(SQLModel, UserBase, TimeStampMixin, table=True):
+    hashed_password: str | None = None
 
     @classmethod
     def create_superuser(cls, email: str, password: str):

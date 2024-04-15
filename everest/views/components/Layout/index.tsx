@@ -34,7 +34,7 @@ export default function MainPageLayout({children, layout, title}: {
           <MainPageSidebar>
             <TableNavigationSidebar tables={layout.tables}/>
           </MainPageSidebar>
-          <div className={"flex-1 p-2 lg:rounded-tl-xl overflow-x-clip z-5"}>
+          <div className={"flex-1 p-2 lg:rounded-tl-xl overflow-x-clip z-5 bg-base-200"}>
             {children}
           </div>
         </div>

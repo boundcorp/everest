@@ -1,6 +1,8 @@
 from typing import List
 
 from pydantic import BaseModel
+from sqlalchemy import Row, select, cast, String
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from everest import models
 from everest.core.utils import to_snake_case
@@ -42,7 +44,7 @@ class TableViewColumnDefinition(BaseModel):
     source: str
     title: str | None = None
     hidden: bool = False
-    
+
 
 class TableView(BaseModel):
     columns: list[str | TableViewColumnDefinition] | None = None
@@ -67,6 +69,14 @@ class AdminTable(BaseModel):
             table_schema=schema,
             views=[TableView(columns=schema.default_view_columns)]
         )
+
+    @property
+    def table_model(self):
+        return getattr(models, self.table_schema.name)
+
+    async def get_row_by_id(self, session: AsyncSession, item_id: str) -> Row:
+        result = await session.execute(select(self.table_model).where(cast(self.table_model.id, String) == item_id))
+        return result.scalars().one()
 
 
 def ALL_TABLES():
