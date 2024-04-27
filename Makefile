@@ -1,2 +1,2 @@
 run:
-	rm everest/.watchdog.lock && poetry run runserver
+	rm everest/.watchdog.lock || true && poetry run runserver
