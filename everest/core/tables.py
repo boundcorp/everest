@@ -47,7 +47,7 @@ class TableViewColumnDefinition(BaseModel):
 
 
 class TableView(BaseModel):
-    columns: list[str | TableViewColumnDefinition] | None = None
+    columns: list[str]
 
 
 class AdminTable(BaseModel):

@@ -4,7 +4,8 @@ from mountaineer.app import AppController
 from mountaineer.js_compiler.postcss import PostCSSBundler
 from mountaineer.render import LinkAttribute, Metadata
 
-from everest.controllers.table_item import TableItemController
+from everest.controllers.item_detail import TableItemController
+from everest.controllers.item_edit import ItemEditController
 from everest.controllers.table_list import TableListController
 from everest.controllers.home import HomeController
 
@@ -29,6 +30,7 @@ controller = AppController(
 controller.register(HomeController())
 controller.register(TableListController())
 controller.register(TableItemController())
+controller.register(ItemEditController())
 
 controller.app.middleware("http")(create_session_middleware(config.API_SECRET_KEY, config.SESSION_COOKIE_NAME))
 

@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useServer} from "./_server/useServer";
+import {useServer} from "./_server";
 import MainPageLayout from "../../../components/Layout";
 import {TableListItems} from "./ListItems";
 import {EditTableView} from "../../../components/EditTableView";

@@ -8,6 +8,4 @@ AdminTableItem = dict[str, AnyType]
 
 
 class AdminTableRow(BaseModel):
-    row_id: str
-    table_id: str
     data: AdminTableItem
