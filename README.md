@@ -14,7 +14,8 @@ POC WIP -
 [ ] - Authentication
 
 Testing/prototype/playground -
-[ ] - Dynamically create new Tables and save the file to disk - see `core/builder/` 
+[x] - Interactive Shell (bpython) - `poetry run shell`
+[x] - Dynamically create new Tables and save the file to disk - see `core/builder/` 
 
 Planned -
 [ ] - View Layouts (e.g. Kanban, Calendar)
