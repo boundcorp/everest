@@ -5,16 +5,13 @@ from fastapi import Depends
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from everest import models
-from everest.core.exceptions import NotFoundException
-from everest.core.layout import LayoutContext
-from everest.core.tables import ALL_TABLES
+from everest.controllers.layout import AdminDependencies
+from everest.core.tables import AdminTable
 from everest.core.types import AdminTableItem
 
 
 class TableListRender(RenderBase):
-    id: str
-    layout: LayoutContext
+    table: AdminTable
     items: list[AdminTableItem] = []
 
 
@@ -27,15 +24,13 @@ class TableListController(ControllerBase):
 
     async def render(
             self,
-            table_id: str,
+            table: AdminTable = Depends(AdminDependencies.require_table),
             session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
-            layout: LayoutContext = Depends(LayoutContext.get_layout),
     ) -> TableListRender:
-        items = await session.execute(select(layout.table.table_model).order_by(*layout.table.table_schema.default_sort_order))
+        items = await session.execute(select(table.db_model).order_by(*table.table_schema.default_sort_order))
         items = [dict(row) for row in items.scalars().all()]
 
         return TableListRender(
-            id=table_id,
-            layout=layout,
+            table=table,
             items=items
         )

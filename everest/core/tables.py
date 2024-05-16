@@ -71,11 +71,11 @@ class AdminTable(BaseModel):
         )
 
     @property
-    def table_model(self):
+    def db_model(self):
         return getattr(models, self.table_schema.name)
 
     async def get_row_by_id(self, session: AsyncSession, item_id: str) -> Row:
-        result = await session.execute(select(self.table_model).where(cast(self.table_model.id, String) == item_id))
+        result = await session.execute(select(self.db_model).where(cast(self.db_model.id, String) == item_id))
         return result.scalars().one()
 
 

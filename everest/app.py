@@ -6,6 +6,7 @@ from mountaineer.render import LinkAttribute, Metadata
 
 from everest.controllers.item_detail import TableItemController
 from everest.controllers.item_edit import ItemEditController
+from everest.controllers.layout import AdminLayoutController
 from everest.controllers.table_list import TableListController
 from everest.controllers.home import HomeController
 
@@ -27,6 +28,7 @@ controller = AppController(
 
 )
 
+controller.register(AdminLayoutController())
 controller.register(HomeController())
 controller.register(TableListController())
 controller.register(TableItemController())

@@ -1,9 +1,9 @@
-import * as React from 'react';
-import {LayoutContext} from "../../app/table/list/_server";
-import {TableNavigationSidebar} from "../TableNavigationSidebar";
-import {MainPageSidebar, SidebarContext, SidebarProvider} from "./sidebar";
-import {FloatingRow} from "../FloatingRow";
+import React, { ReactNode } from "react";
+import { useServer } from "./_server";
 import {ArrowLeftEndOnRectangleIcon, ArrowRightStartOnRectangleIcon} from "@heroicons/react/24/outline";
+import {MainPageSidebar, SidebarContext, SidebarProvider} from "@/components/Layout/sidebar";
+import {FloatingRow} from "@/components/FloatingRow";
+import { TableNavigationSidebar } from "@/components/TableNavigationSidebar";
 
 export function Header({title}: { title: string }) {
   const sidebar = React.useContext(SidebarContext)
@@ -21,13 +21,13 @@ export function Header({title}: { title: string }) {
   } right={null}/>
 }
 
-export default function MainPageLayout({children, layout, title}: {
+export default function Layout({children, title}: {
   children: React.ReactNode,
-  layout: LayoutContext,
   title?: string
 }) {
+  const layout = useServer();
   return (
-    <PageWrapper>
+    <Providers>
       <div className={`flex flex-col min-h-full`}>
         <Header title={title || "everest"}/>
         <div className={"flex-1 flex min-vw-100 position-relative"}>
@@ -39,11 +39,11 @@ export default function MainPageLayout({children, layout, title}: {
           </div>
         </div>
       </div>
-    </PageWrapper>
+    </Providers>
   )
 }
 
-export function PageWrapper({children}) {
+export function Providers({children}: { children: ReactNode }) {
   return (
     <SidebarProvider>
       {children}

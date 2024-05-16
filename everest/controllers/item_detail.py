@@ -7,7 +7,8 @@ from mountaineer.database import DatabaseDependencies
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from everest.core.layout import LayoutContext
+from everest.controllers.layout import AdminDependencies
+from everest.core.tables import AdminTable
 from everest.core.types import AdminTableItem
 
 
@@ -20,9 +21,9 @@ AnyType = None | bool | str | int | datetime | UUID
 
 
 class TableItemRender(RenderBase):
-    id: str
-    layout: LayoutContext
-    item: AdminTableItem
+    item: AdminTableItem | None = None
+    table: AdminTable
+
 
 
 class TableItemController(ControllerBase):
@@ -31,11 +32,11 @@ class TableItemController(ControllerBase):
 
     async def render(
             self,
+            table: AdminTable = Depends(AdminDependencies.require_table),
+            item: AdminTableItem = Depends(AdminDependencies.require_item),
             session: AsyncSession = Depends(DatabaseDependencies.get_db_session),
-            layout: LayoutContext = Depends(LayoutContext.get_layout),
     ) -> TableItemRender:
         return TableItemRender(
-            id=layout.item_id,
-            layout=layout,
-            item=layout.item,
+            table=table,
+            item=item,
         )

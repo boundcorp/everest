@@ -12,7 +12,7 @@ readme = "README.md"
 python = "^3.11"
 
 
-mountaineer = "0.4.1"
+mountaineer = "0.5.0.dev6"
 bpython = "^0.24"
 bcrypt = "^4.1.2"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}

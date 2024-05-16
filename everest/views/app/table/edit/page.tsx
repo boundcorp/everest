@@ -1,6 +1,5 @@
 import * as React from "react";
 import {useServer} from "./_server/useServer";
-import MainPageLayout from "../../../components/Layout";
 import {FloatingRow} from "../../../components/FloatingRow";
 import {EditTableView} from "../../../components/EditTableView";
 import {TableView} from "./_server";
@@ -8,26 +7,24 @@ import {getLocalItem} from "../../../components/utils";
 import {FormProvider, useForm, useFormContext} from "react-hook-form";
 
 const Page = () => {
-  const {layout, item} = useServer();
-  const table = layout.table
+  const {table} = useServer();
   const view = getLocalItem<TableView>(`${table.table_schema.id}-custom-view`) || table.views[0]
 
   return (
-    <MainPageLayout layout={layout}>
+    <>
       <FloatingRow left={<h1>{table.table_schema.name}</h1>} right={<EditTableView table={table} view={view}/>}/>
       <EditView view={view}/>
-    </MainPageLayout>
+    </>
   );
 };
 
 function EditView({view}: {view: TableView}) {
-  const {item, layout: {table_id, item_id, table}, partial_update} = useServer()
+  const {item, table} = useServer()
   const methods = useForm()
 
   function submit(e) {
     e.preventDefault()
     const data = methods.getValues()
-    partial_update({table_id, item_id, requestBody: {data}})
   }
 
   return (
