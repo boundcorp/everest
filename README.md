@@ -4,10 +4,10 @@ Playground demonstration of an Admin panel for Mountaineer apps, in the spirit o
 
 ![Preview](/docs/table_view.png)
 
-## Status
+## Status & Roadmap
 Everest is WIP and not ready for production use. I'm working on this during hobby time, so progress may be slow. If you are interested in this project, please let me know by adding a Star!
 
-POC WIP - 
+### POC (WIP) - 
 - [x] Automatic list/details/update views for all installed tables
 - [X] Authentication
 - [X] Session and Visitor logging, hourly cleanup job
@@ -22,11 +22,11 @@ POC WIP -
   - [ ] Helm Chart / K8s manifests
   - [ ] CI/CD pipeline (github)
 
-Testing/prototype/playground -
+### Testing/prototype/playground -
 - [x] Interactive Shell (bpython) - `poetry run shell`
 - [x] Dynamically create new Tables and save the file to disk - see `core/builder/` 
 
-Planned -
+### Planned -
 - [ ] View Layouts (e.g. Kanban, Calendar)
 - [ ] Actions (e.g. Send Email, Export to CSV)
 - [ ] Advanced fields (e.g. postgis, Rich Text)
