@@ -1,5 +1,2 @@
-from everest.core.builder.sqltable import TableBuilder
+from everest.core.builder.sqltable import SQLModelTableBuilder
 
-if __name__ == '__main__':
-    Book = TableBuilder.create('demo.Book', base_classes=['mountaineer.database.sqlmodel.SQLModel'])
-    Book.save_to_disk()

@@ -1,12 +1,14 @@
 import * as React from "react";
-import {useServer} from "./_server";
+import {useServer} from "@/app/_server"
 
 const Home = () => {
   const serverState = useServer();
 
   return (
     <>
-      here
+      <pre>
+        {JSON.stringify(serverState, null, 2)}
+      </pre>
     </>
   );
 };

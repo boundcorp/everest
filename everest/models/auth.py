@@ -1,34 +1,13 @@
 from datetime import datetime
 from typing import Optional
-from uuid import uuid4, UUID
+from uuid import UUID, uuid4
 
 import bcrypt
-from mountaineer.database import SQLModel, Field
+from mountaineer.database import Field, SQLModel
 from pydantic import BaseModel
-from sqlalchemy import DateTime, Column
+from sqlalchemy import Column, DateTime
 
-
-class TimeStampMixin(BaseModel):
-    created_at: Optional[datetime] = Field(
-        sa_column=Column(
-            DateTime,
-            default=datetime.utcnow,
-            nullable=False,
-        )
-    )
-
-    updated_at: Optional[datetime] = Field(
-        sa_column=Column(
-            DateTime,
-            default=datetime.utcnow,
-            onupdate=datetime.utcnow,
-        )
-    )
-
-
-class DetailItem(SQLModel, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    description: str
+from everest.models.mixins import TimeStampMixin
 
 
 def hash_password(password: str) -> str:

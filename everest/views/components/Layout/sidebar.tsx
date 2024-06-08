@@ -1,6 +1,7 @@
 import * as React from "react";
-import {localStorageState} from "../utils";
+import {cookieState} from "../utils";
 import {BackwardIcon, ForwardIcon} from "@heroicons/react/24/outline";
+import { useServer } from "@/app/_server";
 
 export const SidebarContext = React.createContext({
   isSidebarOpen: true,
@@ -9,7 +10,8 @@ export const SidebarContext = React.createContext({
 })
 
 export const SidebarProvider = ({children}: { children: React.ReactNode }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = localStorageState('sidebarOpen', true, false)
+  const ssrOpen = useServer()?.sidebar_open
+  const [isSidebarOpen, setIsSidebarOpen] = cookieState('sidebarOpen', true, ssrOpen)
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen)
 
   return (

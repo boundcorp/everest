@@ -2,9 +2,10 @@ import * as React from "react";
 import {useServer} from "./_server/useServer";
 import {FloatingRow} from "../../../components/FloatingRow";
 import {EditTableView} from "../../../components/EditTableView";
-import {TableView} from "./_server";
-import {getLocalItem} from "../../../components/utils";
-import {FormProvider, useForm, useFormContext} from "react-hook-form";
+import {AdminTableRow, TableView} from "./_server";
+import {getLocalItem, handleFormSubmit} from "../../../components/utils";
+import {FormProvider, useForm} from "react-hook-form";
+import {TableFormField} from "@/components/FormFields/common";
 
 const Page = () => {
   const {table} = useServer();
@@ -18,81 +19,39 @@ const Page = () => {
   );
 };
 
-function EditView({view}: {view: TableView}) {
-  const {item, table} = useServer()
-  const methods = useForm()
+function EditView({view}: { view: TableView }) {
+  const {item, table, partial_update, linkGenerator} = useServer()
+  type GenericForm = Record<string, boolean | null | number | string>
+  const form = useForm<GenericForm>()
 
-  function submit(e) {
-    e.preventDefault()
-    const data = methods.getValues()
+  const submit = async (data: GenericForm) => {
+    console.log("Sending data", data)
+    return await partial_update({table_id: table.table_schema.id, requestBody: {data: {...data, id: item.id}}})
   }
 
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={submit}>
-        {
-          view.columns.map(
-            (column) => (
-              <div key={column} className="mb-1">
-                <h2>{column}</h2>
-                <TableFormField name={column} item={item} column={table.table_schema.properties[column]}/>
-              </div>
-            )
-          )
-        }
-        <button className="btn btn-primary" type={"submit"}>Save</button>
-      </form>
-    </FormProvider>
+    <div className={"flex justify-center items-center h-full"}>
+      <div className={"w-96 p-4 bg-base-100 rounded-xl"}>
+        <FormProvider {...form}>
+          <form
+            onSubmit={handleFormSubmit(form, submit, {onSuccess: (r) => window.location.pathname = linkGenerator.tableItemController({table_id: table.table_schema.id, item_id: r.sideeffect.item.id})})}>
+            {
+              view.columns.map(
+                (column) => (
+                  <div key={column} className="mb-1">
+                    <h2>{column}</h2>
+                    <TableFormField name={column} item={item} column={table.table_schema.properties[column]}/>
+                  </div>
+                )
+              )
+            }
+            <button className="btn btn-primary" type={"submit"}>Save</button>
+          </form>
+        </FormProvider>
+      </div>
+    </div>
   )
 }
 
-function TableFormField({name, item, column}) {
-  function typeMatch(matchType) {
-    return column.type === matchType || column.anyOf?.some(({format, type}) => format === matchType || type === matchType)
-  }
-  if (name === "id") {
-    return <input type="hidden" defaultValue={item[name]}/>
-  } else if(typeMatch("date-time")) {
-    return <DateTimeFormField name={name} item={item}/>
-  } else if (typeMatch("string")) {
-    return <TextFormField name={name} item={item}/>
-  } else if (typeMatch("boolean")) {
-    return <CheckboxFormField name={name} item={item}/>
-  }
-}
-
-
-function TextFormField({name, item}) {
-  const {register} = useFormContext()
-  return (
-    <input
-      type="text"
-      defaultValue={item[name]}
-      {...register(name)}
-    />
-  )
-}
-
-function CheckboxFormField({name, item}) {
-  const {register} = useFormContext()
-  return (
-    <input
-      type="checkbox"
-      defaultChecked={item[name]}
-      {...register(name)}
-    />
-  )
-}
-
-function DateTimeFormField({name, item}) {
-  const {register} = useFormContext()
-  return (
-    <input
-      type="datetime-local"
-      defaultValue={item[name]?.split('.')[0]}
-      {...register(name)}
-    />
-  )
-}
 
 export default Page;

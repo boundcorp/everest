@@ -4,6 +4,7 @@ from mountaineer.database import DatabaseDependencies
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+
 class HomeRender(RenderBase):
     pass
 

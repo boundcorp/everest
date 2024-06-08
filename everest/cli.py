@@ -86,6 +86,7 @@ def shell():
     # Modified to directly use config without FastAPI dependency injection
     engine = engine_from_config(config)
     db = db_helper(engine)
+    from everest.app import controller
 
     # Open bpython with injected locals
     try:
@@ -94,12 +95,23 @@ def shell():
             config=config,
             engine=engine,
             select=select,
+            controller=controller,
             models=models,
             wait=wait,
             db=db,
         ))
     except ImportError:
         raise ImportError("bpython is required for the shell command")
+
+
+@command()
+def worker():
+    config = import_from_string("everest.config:AppConfig")()
+
+    # Modified to directly use config without FastAPI dependency injection
+    engine = engine_from_config(config)
+    db = db_helper(engine)
+
 
 
 @command()

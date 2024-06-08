@@ -1,29 +1,17 @@
-from datetime import datetime
-from uuid import UUID
-
-from mountaineer import RenderBase, ControllerBase, APIException
+from mountaineer import RenderBase, ControllerBase
 from mountaineer.database import DatabaseDependencies
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from everest.controllers.layout import AdminDependencies
+from everest.controllers.app.layout import AdminDependencies
 from everest.core.tables import AdminTable
 from everest.core.types import AdminTableItem
 
 
-class NotFoundException(APIException):
-    status_code = 404
-    detail = "Detail item not found"
-
-
-AnyType = None | bool | str | int | datetime | UUID
-
-
 class TableItemRender(RenderBase):
-    item: AdminTableItem | None = None
+    item: AdminTableItem
     table: AdminTable
-
 
 
 class TableItemController(ControllerBase):

@@ -1,6 +1,6 @@
 from typing import Type, TypeVar
 
-from fastapi import Depends, Request
+from fastapi import Depends, Request, HTTPException
 from mountaineer.dependencies import CoreDependencies
 from mountaineer.database import DatabaseDependencies
 from jose import ExpiredSignatureError, JWTError, jwt
@@ -9,8 +9,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from everest.core.auth.config import AuthConfig
 from everest.core.auth.exceptions import UnauthorizedError
 from everest.models import User
+import logging
+
+log = logging.getLogger(__name__)
 
 T = TypeVar("T", bound=User)
+
 
 
 class AuthDependencies:
@@ -57,7 +61,7 @@ class AuthDependencies:
             peeked_user: T | None = Depends(AuthDependencies.lookup_user(user_model)),
         ) -> T:
             if peeked_user is None:
-                raise UnauthorizedError()
+                raise HTTPException(status_code=302, headers={"Location": "/login"})
 
             return peeked_user
 
@@ -70,8 +74,8 @@ class AuthDependencies:
         def internal(
             user: T = Depends(AuthDependencies.require_valid_user(user_model)),
         ) -> T:
-            if not user.is_admin:
-                raise UnauthorizedError()
+            if not user.is_superuser:
+                raise HTTPException(status_code=302, headers={"Location": "/login"})
 
             return user
 

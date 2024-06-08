@@ -1,90 +1,102 @@
-import os
-from pathlib import Path
-from typing import AnyStr
-
 from pydantic import BaseModel
+from sqlmodel import SQLModel
 
-from everest.core.builder.utils import ensure_package_path, indent
+from everest.core.builder.classbuilder import ClassBuilder
+from everest.core.builder.utils import ensure_package_path
 
 TABLE_PATH = 'everest/models/managed/'
+
 
 class FieldBuilder(BaseModel):
     name: str
     type: str
-    default_factory: str | None
+    or_none: bool = False
+    foreign_key: str | None = None
+    primary_key: bool = False
+    default_factory: str | None = None
+    index: bool | None = False
 
-class TableBuilder(BaseModel):
-    package: str
+class Relationship(BaseModel):
     name: str
-    path: str
-    base_classes: list[str]
-    imports: dict[str, list[str]]
-    partials: list[str]
+    table: "SQLModelTableBuilder"
+    reverse_name: str
+    is_reverse: bool = False
+
+
+class SQLModelTableBuilder(ClassBuilder):
     primary_key: str
     field_names: list[str]
     field_options: dict[str, FieldBuilder]
+    relationships: dict[str, Relationship]
 
     @classmethod
-    def create(cls, package, name=None, base_path=None, base_classes=None):
-        pkey = 'id'
-        return cls(
+    def create_single(cls, package, name=None, base_path=None, base_classes=None, pkey='id'):
+        table = cls(
             package=package,
             name=name or package.split('.')[-1],
             path=str(ensure_package_path(package, base_path or TABLE_PATH)),
             base_classes=base_classes or ['object'],
             imports={},
+            typing_imports={},
             partials=[],
             primary_key=pkey,
             field_names=[pkey],
-            field_options={pkey: FieldBuilder(name=pkey, type='uuid.UUID', default_factory='uuid.uuid4')}
+            field_options={
+                pkey: FieldBuilder(name=pkey, type='uuid.UUID', default_factory='uuid.uuid4', primary_key=True)},
+            relationships={},
         )
+        for base in base_classes:
+            table.register_import(base)
 
-    def save_to_disk(self):
-        os.makedirs(self.path, exist_ok=True)
-        with open(Path(self.path) / f'{self.name}.py', 'wb+') as fh:
-            fh.writelines([(s + "\n").encode('utf-8') for s in self.class_template()])
+        return table
 
-    def register_import(self, i):
-        if '.' in i:
-            parts = i.split('.')
-            from_package, name = '.'.join(parts[:-1]), parts[-1]
-        else:
-            from_package, name = '.', i
-        if from_package not in self.imports:
-            self.imports[from_package] = []
+    @property
+    def primary_key_field(self):
+        return self.field_options[self.primary_key]
 
-        self.imports[from_package] += [name]
-        return name
+    def add_field(self, name, type, default_factory=None, foreign_key=None, primary_key=False, index=False):
+        self.field_names.append(name)
+        self.field_options[name] = FieldBuilder(name=name, type=type, default_factory=default_factory, foreign_key=foreign_key, primary_key=primary_key, index=index)
+        return self
 
-    def register_partial(self, p):
-        name = p.split('.')[-1]
-        parent = '.'.join(p.split('.')[:-1])
-        ensure_package_path(parent)
-        self.partials.append(name)
+    def add_relation(self, name, table, reverse_name, is_reverse=False):
+        self.relationships[name] = Relationship(name=name, table=table, reverse_name=reverse_name, is_reverse=is_reverse)
 
-    def class_template(self) -> list[AnyStr]:
-        body = indent(self.class_body_lines() or ["pass"])
-        base_classes = ', '.join(self.register_import(base) for base in self.base_classes)
-        imports = [
-            f"from {package} import {', '.join(set(names))}" for package, names in self.imports.items()
-        ]
-        return [
-            *imports,
-            "",
-            "",
-            f"class {self.name}({base_classes}, table=True):", *body,
-            "",
-        ]
+    def add_foreign_key(self, name: str, table: "SQLModelTableBuilder", reverse_name: str):
+        self.add_field(name + "_id", table.primary_key_field.type, foreign_key="%s.%s" %(table.name.lower(), table.primary_key), index=True)
+        self.add_relation(name, table, reverse_name)
+        table.add_relation(reverse_name, self, name)
+
+
+    def class_params(self):
+        return super().class_params() + ["table=True"]
 
     def class_body_lines(self):
         return [
-            *self.class_field_lines()
+            *self.class_field_lines(),
+            *self.class_relationship_lines(),
         ]
 
     def class_field_lines(self):
         return [
             self.field_line(field) for field in self.field_names
         ]
+
+    def class_relationship_lines(self):
+        return [
+            self.relationship_line(rel) for rel in self.relationships.values()
+        ]
+
+    def relationship_line(self, rel):
+        if rel.table.package != self.package:
+            self.register_import("." + rel.table.name, typing=True)
+        self.register_import('sqlmodel.Relationship')
+
+        if rel.is_reverse:
+            return f"{rel.name}: List[\"{rel.table.name}\"] = Relationship(back_populates='{rel.reverse_name}')"
+
+        return f"{rel.name}: \"{rel.table.name}\" = Relationship(back_populates='{rel.reverse_name}')"
+
 
     def field_line(self, field):
         options = self.field_options[field]
@@ -93,7 +105,11 @@ class TableBuilder(BaseModel):
         args = []
         if options.default_factory:
             args.append(f'default_factory={self.register_import(options.default_factory)}')
-        if field == self.primary_key:
+        if options.primary_key:
             args.append('primary_key=True')
+        if options.foreign_key:
+            args.append(f'foreign_key="{options.foreign_key}"')
+        if options.index:
+            args.append('index=True')
 
         return f"{field}: {_type} = Field({', '.join(args)})"
